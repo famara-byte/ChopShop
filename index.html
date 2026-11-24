@@ -88,15 +88,36 @@
   .hero-head h1{font-size:clamp(2.6rem,9.5vw,5.2rem); color:var(--char)}
   .hero-head h1 .r{color:var(--red)} .hero-head h1 .y{color:var(--yellow-2)}
   .hero-head p{margin-top:12px; font-weight:600; color:var(--muted); font-size:clamp(.98rem,2.6vw,1.12rem)}
-  .burger-stage{flex:1; width:min(520px,94vw); display:flex; align-items:center; justify-content:center; min-height:0}
-  .burger-svg{width:100%; height:auto; max-height:100%}
+  .burger-stage{flex:1; width:100%; display:flex; align-items:center; justify-content:center; min-height:0}
+  .stack-stage{
+    position:relative; flex:none;
+    width:min(460px,92vw,62svh); aspect-ratio:6/7;
+  }
+  .stack-shadow{
+    position:absolute; left:6%; right:6%; bottom:0; height:7%;
+    background:radial-gradient(50% 50% at 50% 50%, rgba(35,32,28,.34), transparent 70%);
+    filter:blur(6px);
+  }
+  .stack-layer{
+    position:absolute; left:0; right:0; margin-inline:auto;
+    filter:drop-shadow(0 12px 14px rgba(35,32,28,.20));
+    will-change:transform;
+  }
+  .finale-photo{
+    position:absolute; inset:0; display:grid; place-items:center;
+    opacity:0; pointer-events:none; z-index:8;
+  }
+  .finale-photo img{
+    width:118%; max-width:580px; border-radius:22px;
+    border:4px solid var(--char);
+    box-shadow:0 30px 60px rgba(35,32,28,.35);
+  }
   .hero-caption{
     z-index:5; min-height:52px; display:flex; align-items:center; justify-content:center;
     background:var(--char); color:var(--cream); border-radius:999px;
     padding:10px 26px; font-weight:800; font-size:clamp(.95rem,3vw,1.1rem); text-align:center;
     box-shadow:0 12px 28px rgba(35,32,28,.25);
   }
-  .hero-caption .dot{color:var(--yellow)}
   .scroll-hint{
     margin-top:14px; font-weight:800; letter-spacing:.22em; font-size:.72rem; text-transform:uppercase; color:var(--muted);
     display:flex; flex-direction:column; align-items:center; gap:4px; z-index:5;
@@ -105,7 +126,7 @@
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
   .hero-final{
     position:absolute; left:50%; bottom:5.5%; transform:translateX(-50%);
-    width:min(680px,92vw); text-align:center; z-index:6;
+    width:min(680px,92vw); text-align:center; z-index:9;
   }
   .hero-final h2{font-size:clamp(2rem,7.5vw,3.6rem); color:var(--char); text-shadow:0 2px 0 var(--cream)}
   .hero-final h2 .r{color:var(--red)}
@@ -133,10 +154,13 @@
     border:2px solid rgba(255,196,46,.25); border-radius:24px; padding:28px 18px 20px;
     display:flex; flex-direction:column; align-items:center;
   }
-  .stack{display:flex; flex-direction:column-reverse; align-items:center; width:min(250px,72vw)}
-  .layer{width:100%; transition:opacity .25s var(--ease-out)}
-  .layer.off{display:none}
-  .layer.pop{animation:drop .45s var(--ease-out)}
+  .pstack{position:relative; width:min(330px,80vw); aspect-ratio:1/1}
+  .player{
+    position:absolute; left:0; right:0; margin-inline:auto;
+    filter:drop-shadow(0 8px 10px rgba(0,0,0,.35));
+  }
+  .player.off{display:none}
+  .player.pop{animation:drop .45s var(--ease-out)}
   @keyframes drop{0%{transform:translateY(-46px); opacity:0}60%{transform:translateY(4px); opacity:1}100%{transform:translateY(0)}}
   .stack-plate{width:78%; height:12px; border-radius:50%; background:rgba(0,0,0,.45); margin-top:10px}
   .stack-stats{display:flex; gap:12px; margin-top:22px; flex-wrap:wrap; justify-content:center}
@@ -173,6 +197,12 @@
     letter-spacing:.1em; text-transform:uppercase; padding:4px 11px; border-radius:999px; white-space:nowrap;
   }
   .cat-head .rule{flex:1; height:3px; border-radius:2px; background:repeating-linear-gradient(90deg, var(--red) 0 14px, transparent 14px 22px); opacity:.5}
+  .cat-photo{
+    width:100%; aspect-ratio:21/9; object-fit:cover;
+    border-radius:var(--radius); border:1px solid var(--line);
+    box-shadow:0 10px 26px rgba(35,32,28,.12); margin-bottom:16px;
+  }
+  @media (max-width:640px){ .cat-photo{aspect-ratio:16/9} }
   .cards{display:grid; grid-template-columns:repeat(2,1fr); gap:14px}
   @media (min-width:860px){ .cards{grid-template-columns:repeat(3,1fr)} }
   .dish{
@@ -230,8 +260,9 @@
     html{scroll-behavior:auto}
     .marquee-track{animation:none}
     .scroll-hint span{animation:none}
-    .layer.pop{animation:none}
+    .player.pop{animation:none}
     *{transition:none !important}
+    .js .hero-final{position:static; transform:none; opacity:1; pointer-events:auto; margin-top:16px}
   }
 </style>
 </head>
@@ -259,113 +290,22 @@
     </div>
 
     <div class="burger-stage">
-      <svg class="burger-svg" id="burgerSvg" viewBox="0 0 360 430" role="img" aria-label="A ChopShop burger stacking itself layer by layer, then dropping into a takeaway box">
-        <defs>
-          <linearGradient id="bunGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#f7bc52" />
-            <stop offset="1" stop-color="#e08a1e" />
-          </linearGradient>
-          <linearGradient id="pattyGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#7c4525" />
-            <stop offset="1" stop-color="#5d3016" />
-          </linearGradient>
-        </defs>
-
-        <!-- takeaway box: back panel (behind the burger) -->
-        <g id="boxBack" opacity="0">
-          <path d="M102 246 L258 246 L274 396 L86 396 Z" fill="#a81515" />
-          <path d="M102 246 L258 246 L266 300 L94 300 Z" fill="#8f1111" />
-        </g>
-
-        <!-- the burger stack -->
-        <g id="burgerAll">
-          <!-- 0 · bottom bun -->
-          <g class="layer" data-layer="0">
-            <path d="M95 294 L265 294 L265 305 Q265 319 249 319 L111 319 Q95 319 95 305 Z" fill="url(#bunGrad)" />
-            <path d="M95 294 L265 294 L265 299 L95 299 Z" fill="#f9cd77" />
-          </g>
-          <!-- 1 · sauce -->
-          <g class="layer" data-layer="1">
-            <path d="M93 290 q22 -11 44 -3 q22 8 43 1 q22 -7 43 1 q22 8 44 -2 l0 9 q-22 9 -44 1 q-21 -7 -43 0 q-21 8 -43 0 q-22 -8 -44 1 Z" fill="#ff8a3d" />
-          </g>
-          <!-- 2 · beef patty -->
-          <g class="layer" data-layer="2">
-            <rect x="91" y="261" width="178" height="30" rx="14" fill="url(#pattyGrad)" />
-            <circle cx="125" cy="272" r="3" fill="#4a2810" />
-            <circle cx="168" cy="280" r="3.4" fill="#4a2810" />
-            <circle cx="212" cy="271" r="3" fill="#4a2810" />
-            <circle cx="240" cy="281" r="2.6" fill="#4a2810" />
-            <circle cx="146" cy="283" r="2.4" fill="#8a5a30" />
-            <circle cx="196" cy="283" r="2.4" fill="#8a5a30" />
-          </g>
-          <!-- 3 · melted cheese -->
-          <g class="layer" data-layer="3">
-            <path d="M103 250 L257 242 L263 258 q-13 17 -26 5 q-10 -11 -22 -1 q-12 13 -25 2 q-11 -10 -21 -1 q-13 12 -25 2 q-11 -10 -20 -1 q-14 11 -25 -3 Z" fill="#ffb300" stroke="#f59e0b" stroke-width="2" />
-          </g>
-          <!-- 4 · onion rings -->
-          <g class="layer" data-layer="4" fill="none">
-            <circle cx="138" cy="243" r="13" stroke="#f7f0fa" stroke-width="5.5" />
-            <circle cx="138" cy="243" r="6.5" stroke="#e3d3ee" stroke-width="2.5" />
-            <circle cx="181" cy="239" r="15" stroke="#f7f0fa" stroke-width="5.5" />
-            <circle cx="181" cy="239" r="7.5" stroke="#e3d3ee" stroke-width="2.5" />
-            <circle cx="224" cy="243" r="13" stroke="#f7f0fa" stroke-width="5.5" />
-            <circle cx="224" cy="243" r="6.5" stroke="#e3d3ee" stroke-width="2.5" />
-          </g>
-          <!-- 5 · tomato -->
-          <g class="layer" data-layer="5">
-            <ellipse cx="136" cy="229" rx="31" ry="13" fill="#e23b2e" />
-            <ellipse cx="136" cy="228" rx="23" ry="8.5" fill="#f0654f" />
-            <ellipse cx="224" cy="229" rx="31" ry="13" fill="#e23b2e" />
-            <ellipse cx="224" cy="228" rx="23" ry="8.5" fill="#f0654f" />
-            <circle cx="128" cy="228" r="1.8" fill="#ffd9d2" />
-            <circle cx="144" cy="229" r="1.8" fill="#ffd9d2" />
-            <circle cx="216" cy="228" r="1.8" fill="#ffd9d2" />
-            <circle cx="232" cy="229" r="1.8" fill="#ffd9d2" />
-          </g>
-          <!-- 6 · lettuce -->
-          <g class="layer" data-layer="6">
-            <path d="M88 206 q11 -14 23 -1 q11 12 23 0 q11 -13 23 -1 q11 13 23 1 q11 -13 23 0 q11 12 23 -1 q11 -12 23 0 q11 12 23 0 L272 220 q-11 13 -23 2 q-12 -10 -23 0 q-11 13 -23 2 q-12 -10 -23 0 q-11 13 -23 2 q-12 -10 -23 0 q-11 13 -23 2 q-12 -10 -23 -1 Z" fill="#57b93e" />
-            <path d="M88 206 q11 -14 23 -1 q11 12 23 0 q11 -13 23 -1 q11 13 23 1 q11 -13 23 0 q11 12 23 -1 q11 -12 23 0 q11 12 23 0 L272 213 q-92 10 -184 0 Z" fill="#6fce57" />
-          </g>
-          <!-- 7 · top bun -->
-          <g class="layer" data-layer="7">
-            <path d="M92 212 Q92 136 180 136 Q268 136 268 212 Q268 224 254 224 L106 224 Q92 224 92 212 Z" fill="url(#bunGrad)" />
-            <path d="M104 196 Q112 152 168 144" fill="none" stroke="#f9cd77" stroke-width="7" stroke-linecap="round" opacity=".65" />
-            <g fill="#ffefc4">
-              <ellipse cx="140" cy="168" rx="6" ry="3.4" transform="rotate(-18 140 168)" />
-              <ellipse cx="176" cy="156" rx="6" ry="3.4" transform="rotate(8 176 156)" />
-              <ellipse cx="212" cy="166" rx="6" ry="3.4" transform="rotate(20 212 166)" />
-              <ellipse cx="122" cy="190" rx="6" ry="3.4" transform="rotate(14 122 190)" />
-              <ellipse cx="160" cy="184" rx="6" ry="3.4" transform="rotate(-10 160 184)" />
-              <ellipse cx="198" cy="188" rx="6" ry="3.4" transform="rotate(-16 198 188)" />
-              <ellipse cx="234" cy="190" rx="6" ry="3.4" transform="rotate(10 234 190)" />
-              <ellipse cx="180" cy="204" rx="6" ry="3.4" transform="rotate(4 180 204)" />
-            </g>
-          </g>
-        </g>
-
-        <!-- takeaway box: lid flap (hinged on the box's top edge) -->
-        <g id="lidFlap" opacity="0">
-          <rect x="82" y="146" width="196" height="72" rx="10" fill="#a81515" />
-          <rect x="82" y="146" width="196" height="14" rx="7" fill="#8f1111" />
-        </g>
-
-        <!-- takeaway box: front panel -->
-        <g id="boxFront" opacity="0">
-          <rect x="82" y="218" width="196" height="178" rx="10" fill="#d92323" />
-          <rect x="82" y="218" width="196" height="30" rx="10" fill="#ffb300" />
-          <text x="180" y="240" text-anchor="middle" font-family="Anton, sans-serif" font-size="17" letter-spacing="2" fill="#23201c">CHOPSHOP</text>
-          <text x="180" y="308" text-anchor="middle" font-family="Anton, sans-serif" font-size="27" letter-spacing="1" fill="#ffffff">HOT &amp; FRESH</text>
-          <text x="180" y="336" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="700" font-size="12.5" fill="#ffd9d9">The Gambia's biggest indigenous food brand</text>
-          <g id="boxSticker">
-            <circle cx="180" cy="368" r="17" fill="#ffc42e" stroke="#23201c" stroke-width="2.5" />
-            <text x="180" y="374" text-anchor="middle" font-family="Anton, sans-serif" font-size="14" fill="#23201c">CS</text>
-          </g>
-        </g>
-      </svg>
+      <div class="stack-stage" id="stackStage" role="img" aria-label="A ChopShop burger stacking itself layer by layer, then served in a takeaway box with fries">
+        <div class="stack-shadow" id="stackShadow"></div>
+        <img class="stack-layer" data-layer="0" src="assets/layers/bun-bottom.webp" alt="" style="width:97.8%; bottom:1.9%; z-index:1" />
+        <img class="stack-layer" data-layer="1" src="assets/layers/patty.webp" alt="" style="width:94.4%; bottom:14.3%; z-index:2" />
+        <img class="stack-layer" data-layer="2" src="assets/layers/cheese.webp" alt="" style="width:97.8%; bottom:26.7%; z-index:3" />
+        <img class="stack-layer" data-layer="3" src="assets/layers/onion.webp" alt="" style="width:92.2%; bottom:38.1%; z-index:4" />
+        <img class="stack-layer" data-layer="4" src="assets/layers/tomato.webp" alt="" style="width:96.7%; bottom:44.8%; z-index:5" />
+        <img class="stack-layer" data-layer="5" src="assets/layers/lettuce.webp" alt="" style="width:102.2%; bottom:50.5%; z-index:6" />
+        <img class="stack-layer" data-layer="6" src="assets/layers/bun-top.webp" alt="" style="width:97.8%; bottom:57.1%; z-index:7" />
+        <div class="finale-photo" id="finalePhoto">
+          <img src="assets/photos/burger-box.webp" alt="A ChopShop burger served in an open takeaway box with fries" />
+        </div>
+      </div>
     </div>
 
-    <div class="hero-caption" id="heroCaption">The ChopShop stack <span class="dot">&nbsp;·&nbsp;</span> eight layers deep</div>
+    <div class="hero-caption" id="heroCaption">The ChopShop stack · seven layers deep</div>
     <div class="scroll-hint" id="scrollHint">Scroll<span>&#8595;</span></div>
 
     <div class="hero-final" id="heroFinal">
@@ -397,38 +337,15 @@
 
     <div class="build-grid">
       <div class="stack-box">
-        <div class="stack" id="stack">
-          <!-- DOM order is bottom → top; the stack renders in column-reverse -->
-          <div class="layer" data-slot="base-bun">
-            <svg viewBox="0 0 240 34"><path d="M14 6 L226 6 L226 15 Q226 28 210 28 L30 28 Q14 28 14 15 Z" fill="#e08a1e" /><path d="M14 6 L226 6 L226 11 L14 11 Z" fill="#f9cd77" /></svg>
-          </div>
-          <div class="layer" data-slot="base-patty">
-            <svg viewBox="0 0 240 30"><rect x="10" y="3" width="220" height="24" rx="12" fill="#66391c" /><circle cx="52" cy="13" r="2.6" fill="#452410" /><circle cx="112" cy="18" r="2.8" fill="#452410" /><circle cx="172" cy="12" r="2.6" fill="#452410" /></svg>
-          </div>
-          <div class="layer off" data-slot="onions">
-            <svg viewBox="0 0 240 26"><g fill="none"><circle cx="66" cy="13" r="9" stroke="#e8b06a" stroke-width="4" /><circle cx="120" cy="12" r="10.5" stroke="#dda254" stroke-width="4" /><circle cx="174" cy="13" r="9" stroke="#e8b06a" stroke-width="4" /></g></svg>
-          </div>
-          <div class="layer off" data-slot="xpatty">
-            <svg viewBox="0 0 240 30"><rect x="10" y="3" width="220" height="24" rx="12" fill="#7c4525" /><circle cx="70" cy="16" r="2.6" fill="#4a2810" /><circle cx="140" cy="11" r="2.8" fill="#4a2810" /><circle cx="196" cy="17" r="2.6" fill="#4a2810" /></svg>
-          </div>
-          <div class="layer off" data-slot="strips">
-            <svg viewBox="0 0 240 26"><g fill="none" stroke-linecap="round"><path d="M22 8 q30 -7 60 0 q30 7 60 0 q30 -7 60 0" stroke="#8a3b1e" stroke-width="7" /><path d="M30 19 q30 -7 60 0 q30 7 60 0 q28 -6 56 -1" stroke="#74300f" stroke-width="7" /></g></svg>
-          </div>
-          <div class="layer off" data-slot="egg">
-            <svg viewBox="0 0 240 30"><path d="M28 15 q14 -11 34 -6 q10 -9 26 -5 q16 -6 30 2 q16 -4 28 4 q18 -3 30 5 q14 2 22 8 q-4 6 -18 5 l-132 0 q-16 -1 -20 -7 q-2 -4 0 -6 Z" fill="#fffdf4" /><circle cx="120" cy="14" r="8.5" fill="#ffb300" /><circle cx="117" cy="11" r="3" fill="#ffc42e" /></svg>
-          </div>
-          <div class="layer off" data-slot="cheese">
-            <svg viewBox="0 0 240 26"><path d="M16 4 L224 2 L228 12 q-9 11 -18 3 q-7 -7 -15 -1 q-8 9 -17 1 q-8 -7 -15 0 q-9 8 -17 1 q-8 -7 -14 0 q-9 7 -16 -2 q-7 -7 -13 -1 q-9 6 -16 -3 Z" fill="#ffb300" stroke="#f59e0b" stroke-width="1.6" /></svg>
-          </div>
-          <div class="layer off" data-slot="sauce">
-            <svg viewBox="0 0 240 20"><path d="M14 6 q19 -8 38 -2 q19 6 38 0 q19 -6 38 0 q19 6 38 0 q19 -6 38 1 l0 7 q-19 6 -38 0 q-19 -6 -38 0 q-19 6 -38 0 q-19 -6 -38 0 q-19 5 -38 -1 Z" fill="#ff8a3d" /></svg>
-          </div>
-          <div class="layer off" data-slot="salad">
-            <svg viewBox="0 0 240 30"><path d="M12 8 q10 -9 20 -1 q10 8 20 0 q10 -9 20 -1 q10 9 20 1 q10 -9 20 -1 q10 8 20 0 q10 -9 20 -1 q10 9 20 1 q10 -8 20 0 q10 7 18 1 L228 18 q-10 8 -20 1 q-10 -8 -20 0 q-10 9 -20 1 q-10 -8 -20 0 q-10 9 -20 1 q-10 -8 -20 0 q-10 9 -20 1 q-10 -8 -20 0 q-10 8 -20 1 q-9 -6 -16 -3 Z" fill="#57b93e" /><ellipse cx="76" cy="13" rx="17" ry="6.5" fill="#e23b2e" /><ellipse cx="164" cy="13" rx="17" ry="6.5" fill="#e23b2e" /></svg>
-          </div>
-          <div class="layer" data-slot="base-top">
-            <svg viewBox="0 0 240 62"><path d="M14 52 Q14 6 120 6 Q226 6 226 52 Q226 60 214 60 L26 60 Q14 60 14 52 Z" fill="#e8930c" /><path d="M26 40 Q32 16 104 10" fill="none" stroke="#f9cd77" stroke-width="6" stroke-linecap="round" opacity=".65" /><g fill="#ffefc4"><ellipse cx="78" cy="26" rx="5" ry="2.8" transform="rotate(-16 78 26)" /><ellipse cx="118" cy="19" rx="5" ry="2.8" transform="rotate(8 118 19)" /><ellipse cx="158" cy="25" rx="5" ry="2.8" transform="rotate(18 158 25)" /><ellipse cx="98" cy="38" rx="5" ry="2.8" transform="rotate(10 98 38)" /><ellipse cx="140" cy="39" rx="5" ry="2.8" transform="rotate(-12 140 39)" /></g></svg>
-          </div>
+        <div class="pstack" id="stack">
+          <img class="player" data-slot="base-bun" src="assets/layers/bun-bottom.webp" alt="" style="width:96%; bottom:0%; z-index:1" />
+          <img class="player" data-slot="base-patty" src="assets/layers/patty.webp" alt="" style="width:92%; bottom:12%; z-index:2" />
+          <img class="player off" data-slot="xpatty" src="assets/layers/patty.webp" alt="" style="width:92%; bottom:23%; z-index:3" />
+          <img class="player off" data-slot="cheese" src="assets/layers/cheese.webp" alt="" style="width:96%; bottom:25%; z-index:4" />
+          <img class="player off" data-slot="onions" src="assets/layers/onion.webp" alt="" style="width:88%; bottom:36%; z-index:5" />
+          <img class="player off" data-slot="salad" src="assets/layers/tomato.webp" alt="" style="width:94%; bottom:43%; z-index:6" />
+          <img class="player off" data-slot="salad" src="assets/layers/lettuce.webp" alt="" style="width:100%; bottom:49%; z-index:7" />
+          <img class="player" data-slot="base-top" src="assets/layers/bun-top.webp" alt="" style="width:96%; bottom:54%; z-index:8" />
         </div>
         <div class="stack-plate"></div>
         <div class="stack-stats">
@@ -440,12 +357,9 @@
       <div>
         <div class="ing-grid" id="ingGrid">
           <button class="ing-btn" type="button" data-slot="xpatty" data-price="120" aria-pressed="false"><span>Extra patty</span><span class="price">+D120</span><span class="tick">&#10003;</span></button>
-          <button class="ing-btn" type="button" data-slot="strips" data-price="100" aria-pressed="false"><span>Beef strips</span><span class="price">+D100</span><span class="tick">&#10003;</span></button>
           <button class="ing-btn" type="button" data-slot="cheese" data-price="50" aria-pressed="false"><span>Cheese</span><span class="price">+D50</span><span class="tick">&#10003;</span></button>
-          <button class="ing-btn" type="button" data-slot="egg" data-price="40" aria-pressed="false"><span>Egg</span><span class="price">+D40</span><span class="tick">&#10003;</span></button>
           <button class="ing-btn" type="button" data-slot="salad" data-price="30" aria-pressed="false"><span>Lettuce &amp; tomato</span><span class="price">+D30</span><span class="tick">&#10003;</span></button>
           <button class="ing-btn" type="button" data-slot="onions" data-price="30" aria-pressed="false"><span>Grilled onions</span><span class="price">+D30</span><span class="tick">&#10003;</span></button>
-          <button class="ing-btn" type="button" data-slot="sauce" data-price="20" aria-pressed="false"><span>Extra sauce</span><span class="price">+D20</span><span class="tick">&#10003;</span></button>
         </div>
         <p class="build-note">Base burger D300 — smashed beef patty, ChopShop sauce and the sweet bun. Every extra stacks on top. Prices shown are demo prices for this concept site.</p>
         <div class="build-cta">
@@ -462,127 +376,125 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">The menu</span>
-      <h2>Made fresh, <span class="hl">priced honest</span></h2>
-      <p>The ChopShop line-up — burgers on the famous sweet bun, chicken and fish off the grill, shawarma rolled to order, and shakes and juices made fresh. Demo prices in dalasi.</p>
+      <h2>Made fresh, <span class="hl">priced fair</span></h2>
+      <p>The ChopShop favourites — burgers on the famous sweet bun, chicken and fish straight off the grill, shawarma rolled to order, and shakes and local juices made fresh. Prices are sample prices for this demo.</p>
     </div>
 
     <div class="menu-cat">
       <div class="cat-head"><h3>Burgers</h3><span class="tag">On the sweet bun</span><div class="rule"></div></div>
+      <img class="cat-photo" src="assets/photos/burger-meal.webp" alt="A ChopShop double cheeseburger with fries" loading="lazy" />
       <div class="cards">
-        <article class="dish"><h4>Classic Chop Burger</h4><p>Smashed beef patty, ChopShop sauce, lettuce and tomato in the sweet bun.</p><div class="row"><span class="price-badge">D250</span><span class="pop">The original</span></div></article>
-        <article class="dish"><h4>Cheese Chop Burger</h4><p>The classic with a thick slice of melted cheese dripping down the sides.</p><div class="row"><span class="price-badge">D300</span></div></article>
+        <article class="dish"><h4>Classic Chop Burger</h4><p>Smashed beef patty, house sauce, lettuce &amp; tomato in the famous sweet bun.</p><div class="row"><span class="price-badge">D250</span><span class="pop">The original</span></div></article>
+        <article class="dish"><h4>Cheese Chop Burger</h4><p>The classic, loaded with melted cheese over the smashed patty.</p><div class="row"><span class="price-badge">D300</span></div></article>
         <article class="dish"><h4>Double Smash Burger</h4><p>Two smashed patties, double cheese, extra sauce. Not for the faint-hearted.</p><div class="row"><span class="price-badge">D420</span><span class="pop">Big appetite</span></div></article>
-        <article class="dish"><h4>Chicken Burger</h4><p>Crispy fried chicken fillet with garlic mayo and crunchy lettuce.</p><div class="row"><span class="price-badge">D280</span></div></article>
-        <article class="dish"><h4>Fish Burger</h4><p>Golden fried fish fillet, tartar-style sauce and fresh tomato.</p><div class="row"><span class="price-badge">D320</span></div></article>
-        <article class="dish"><h4>BBQ Beef Burger</h4><p>Beef patty glazed in smoky BBQ sauce with grilled onions.</p><div class="row"><span class="price-badge">D380</span></div></article>
+        <article class="dish"><h4>Chicken Burger</h4><p>Crispy seasoned chicken fillet with garlic mayo and fresh salad.</p><div class="row"><span class="price-badge">D280</span></div></article>
+        <article class="dish"><h4>Fish Burger</h4><p>Golden fried fish fillet with tartar sauce — a coastal favourite.</p><div class="row"><span class="price-badge">D320</span></div></article>
+        <article class="dish"><h4>BBQ Beef Burger</h4><p>Smashed patty glazed in smoky BBQ sauce with grilled onions.</p><div class="row"><span class="price-badge">D380</span></div></article>
       </div>
     </div>
 
     <div class="menu-cat">
       <div class="cat-head"><h3>Combos &amp; Buckets</h3><span class="tag">Feed the crew</span><div class="rule"></div></div>
+      <img class="cat-photo" src="assets/photos/burger-meal.webp" alt="A ChopShop burger meal with fries on a tray" loading="lazy" />
       <div class="cards">
-        <article class="dish"><h4>Chop Combo</h4><p>Any classic burger with Chop fries and a soft drink or juice.</p><div class="row"><span class="price-badge">D400</span><span class="pop">Best value</span></div></article>
-        <article class="dish"><h4>Double Trouble Combo</h4><p>Double Smash Burger, loaded fries and a milkshake of your choice.</p><div class="row"><span class="price-badge">D550</span></div></article>
-        <article class="dish"><h4>Chicken Bucket</h4><p>Eight pieces of fried chicken with a big portion of fries for sharing.</p><div class="row"><span class="price-badge">D550</span><span class="pop">Sharing</span></div></article>
-        <article class="dish"><h4>Duo Box</h4><p>Two burgers, two fries and two drinks — dinner for two, sorted.</p><div class="row"><span class="price-badge">D500</span></div></article>
-        <article class="dish"><h4>Family Feast</h4><p>Four burgers, a bucket of fries and four soft drinks for the whole family.</p><div class="row"><span class="price-badge">D550</span></div></article>
-        <article class="dish"><h4>Kids Meal</h4><p>Mini burger or chicken strips with small fries and a juice box.</p><div class="row"><span class="price-badge">D215</span></div></article>
+        <article class="dish"><h4>Chop Combo</h4><p>Classic Chop Burger + fries + a soft drink. The full works.</p><div class="row"><span class="price-badge">D400</span><span class="pop">Best value</span></div></article>
+        <article class="dish"><h4>Double Trouble Combo</h4><p>Double Smash Burger + loaded fries + a milkshake.</p><div class="row"><span class="price-badge">D550</span></div></article>
+        <article class="dish"><h4>Chicken Bucket</h4><p>A bucket of grilled &amp; fried chicken pieces to share — or not.</p><div class="row"><span class="price-badge">D550</span><span class="pop">Sharing</span></div></article>
+        <article class="dish"><h4>Duo Box</h4><p>Two burgers, two fries and two drinks — built for two.</p><div class="row"><span class="price-badge">D500</span></div></article>
+        <article class="dish"><h4>Family Feast</h4><p>Four burgers, a big fries and drinks all round.</p><div class="row"><span class="price-badge">D550</span></div></article>
+        <article class="dish"><h4>Kids Meal</h4><p>A mini burger, small fries and a juice for the little ones.</p><div class="row"><span class="price-badge">D215</span></div></article>
       </div>
     </div>
 
     <div class="menu-cat">
       <div class="cat-head"><h3>Grilled Chicken</h3><span class="tag">Off the grill</span><div class="rule"></div></div>
+      <img class="cat-photo" src="assets/photos/grilled-chicken.webp" alt="Grilled chicken with fried rice and salad" loading="lazy" />
       <div class="cards">
-        <article class="dish"><h4>Quarter Grilled Chicken</h4><p>Flame-grilled and marinated the ChopShop way, with fries or rice.</p><div class="row"><span class="price-badge">D300</span></div></article>
-        <article class="dish"><h4>Half Grilled Chicken</h4><p>Half a chicken off the grill — enough for a serious lunch.</p><div class="row"><span class="price-badge">D450</span></div></article>
-        <article class="dish"><h4>Chicken Wings · 6 pc</h4><p>Grilled wings tossed in your choice of mild or pepper sauce.</p><div class="row"><span class="price-badge">D250</span><span class="pop">Pepper option</span></div></article>
-        <article class="dish"><h4>Chicken Strips</h4><p>Crispy golden strips with ChopShop dip. A table favourite.</p><div class="row"><span class="price-badge">D280</span></div></article>
-        <article class="dish"><h4>Chicken Fried Rice</h4><p>Wok-tossed fried rice loaded with grilled chicken and vegetables.</p><div class="row"><span class="price-badge">D320</span></div></article>
+        <article class="dish"><h4>Quarter Grilled Chicken</h4><p>Marinated and flame-grilled, served with fries or rice.</p><div class="row"><span class="price-badge">D300</span></div></article>
+        <article class="dish"><h4>Half Grilled Chicken</h4><p>Half a chicken off the grill with your choice of sides.</p><div class="row"><span class="price-badge">D450</span></div></article>
+        <article class="dish"><h4>Chicken Wings · 6 pc</h4><p>Grilled wings in house seasoning — mild or pepper-hot.</p><div class="row"><span class="price-badge">D250</span><span class="pop">Pepper option</span></div></article>
+        <article class="dish"><h4>Chicken Strips</h4><p>Golden strips with a house dip — great for sharing.</p><div class="row"><span class="price-badge">D280</span></div></article>
+        <article class="dish"><h4>Chicken Fried Rice</h4><p>Smoky fried rice tossed with grilled chicken and vegetables.</p><div class="row"><span class="price-badge">D320</span></div></article>
       </div>
     </div>
 
     <div class="menu-cat">
       <div class="cat-head"><h3>Fish &amp; Seafood</h3><span class="tag">From the coast</span><div class="rule"></div></div>
+      <img class="cat-photo" src="assets/photos/grilled-fish.webp" alt="A grilled fish fillet plate with fries and lemon" loading="lazy" />
       <div class="cards">
-        <article class="dish"><h4>Grilled Fish Fillet</h4><p>Fresh catch grilled with lemon and herbs, served with rice or fries.</p><div class="row"><span class="price-badge">D380</span></div></article>
-        <article class="dish"><h4>Garlic Prawns</h4><p>Prawns sizzled in garlic butter — the one everybody talks about.</p><div class="row"><span class="price-badge">D415</span><span class="pop">Famous</span></div></article>
-        <article class="dish"><h4>Fish &amp; Chips</h4><p>Battered fish, golden chips and ChopShop tartar-style sauce.</p><div class="row"><span class="price-badge">D350</span></div></article>
-        <article class="dish"><h4>Seafood Fried Rice</h4><p>Fried rice with prawns and fish, tossed with peppers and spring onion.</p><div class="row"><span class="price-badge">D400</span></div></article>
+        <article class="dish"><h4>Grilled Fish Fillet</h4><p>Fresh catch, simply grilled with lemon and house seasoning.</p><div class="row"><span class="price-badge">D380</span></div></article>
+        <article class="dish"><h4>Garlic Prawns</h4><p>Prawns sizzling in garlic butter — the dish people cross town for.</p><div class="row"><span class="price-badge">D415</span><span class="pop">Famous</span></div></article>
+        <article class="dish"><h4>Fish &amp; Chips</h4><p>Battered fish, chunky fries and tartar sauce.</p><div class="row"><span class="price-badge">D350</span></div></article>
+        <article class="dish"><h4>Seafood Fried Rice</h4><p>Fried rice loaded with prawns and fish, ChopShop style.</p><div class="row"><span class="price-badge">D400</span></div></article>
       </div>
     </div>
 
     <div class="menu-cat">
       <div class="cat-head"><h3>Shawarma &amp; Wraps</h3><span class="tag">Rolled to order</span><div class="rule"></div></div>
+      <img class="cat-photo" src="assets/photos/shawarma.webp" alt="A chicken shawarma wrap cut in half" loading="lazy" />
       <div class="cards">
-        <article class="dish"><h4>Chicken Shawarma</h4><p>Marinated chicken shaved off the spit with garlic sauce and pickles.</p><div class="row"><span class="price-badge">D250</span><span class="pop">Best seller</span></div></article>
-        <article class="dish"><h4>Beef Shawarma</h4><p>Seasoned beef strips, onions and tahini-style sauce in warm flatbread.</p><div class="row"><span class="price-badge">D280</span></div></article>
-        <article class="dish"><h4>Mixed Shawarma</h4><p>Chicken and beef together with the full works. The best of both.</p><div class="row"><span class="price-badge">D300</span></div></article>
-        <article class="dish"><h4>Grilled Chicken Wrap</h4><p>Char-grilled chicken, salad and ChopShop sauce, wrapped tight.</p><div class="row"><span class="price-badge">D260</span></div></article>
+        <article class="dish"><h4>Chicken Shawarma</h4><p>Marinated chicken, garlic sauce and pickles, wrapped warm.</p><div class="row"><span class="price-badge">D250</span><span class="pop">Best seller</span></div></article>
+        <article class="dish"><h4>Beef Shawarma</h4><p>Seasoned beef strips with tahini-style sauce and salad.</p><div class="row"><span class="price-badge">D280</span></div></article>
+        <article class="dish"><h4>Mixed Shawarma</h4><p>Chicken and beef together — best of both.</p><div class="row"><span class="price-badge">D300</span></div></article>
+        <article class="dish"><h4>Grilled Chicken Wrap</h4><p>Char-grilled chicken with fresh salad and house sauce.</p><div class="row"><span class="price-badge">D260</span></div></article>
       </div>
     </div>
 
     <div class="menu-cat">
       <div class="cat-head"><h3>Sides</h3><span class="tag">On the side</span><div class="rule"></div></div>
+      <img class="cat-photo" src="assets/photos/milkshakes.webp" alt="Fries served with ChopShop milkshakes" loading="lazy" />
       <div class="cards">
-        <article class="dish"><h4>Chop Fries</h4><p>Golden, crispy and seasoned. The ones that come with everything.</p><div class="row"><span class="price-badge">D100</span></div></article>
-        <article class="dish"><h4>Loaded Fries</h4><p>Fries under melted cheese, beef strips and ChopShop sauce.</p><div class="row"><span class="price-badge">D180</span><span class="pop">Go large</span></div></article>
-        <article class="dish"><h4>Fried Rice</h4><p>Classic ChopShop fried rice with vegetables and egg.</p><div class="row"><span class="price-badge">D150</span></div></article>
-        <article class="dish"><h4>Onion Rings</h4><p>Big, crunchy, battered rings with a cool dip.</p><div class="row"><span class="price-badge">D120</span></div></article>
-        <article class="dish"><h4>Coleslaw</h4><p>Fresh, crunchy and creamy — the grill's best friend.</p><div class="row"><span class="price-badge">D60</span></div></article>
+        <article class="dish"><h4>Chop Fries</h4><p>Golden, salted and dangerously moreish.</p><div class="row"><span class="price-badge">D100</span></div></article>
+        <article class="dish"><h4>Loaded Fries</h4><p>Fries under cheese sauce, chicken bits and house drizzle.</p><div class="row"><span class="price-badge">D180</span><span class="pop">Go large</span></div></article>
+        <article class="dish"><h4>Fried Rice</h4><p>Smoky ChopShop fried rice — the side that eats like a main.</p><div class="row"><span class="price-badge">D150</span></div></article>
+        <article class="dish"><h4>Onion Rings</h4><p>Crisp, golden and stacked high.</p><div class="row"><span class="price-badge">D120</span></div></article>
+        <article class="dish"><h4>Coleslaw</h4><p>Fresh, crunchy and creamy — the cool contrast.</p><div class="row"><span class="price-badge">D60</span></div></article>
       </div>
     </div>
 
     <div class="menu-cat">
       <div class="cat-head"><h3>Shakes &amp; Juices</h3><span class="tag">Made fresh</span><div class="rule"></div></div>
+      <img class="cat-photo" src="assets/photos/milkshakes.webp" alt="Two ChopShop milkshakes with whipped cream" loading="lazy" />
       <div class="cards">
-        <article class="dish"><h4>Vanilla Milkshake</h4><p>Thick, cold and creamy — the classic ChopShop shake.</p><div class="row"><span class="price-badge">D150</span></div></article>
-        <article class="dish"><h4>Chocolate Milkshake</h4><p>Rich chocolate shake topped with a chocolate drizzle.</p><div class="row"><span class="price-badge">D150</span></div></article>
-        <article class="dish"><h4>Strawberry Milkshake</h4><p>Sweet strawberry shake, blended thick to order.</p><div class="row"><span class="price-badge">D150</span></div></article>
-        <article class="dish"><h4>Fresh Orange Juice</h4><p>Squeezed fresh every morning. Nothing added.</p><div class="row"><span class="price-badge">D80</span></div></article>
-        <article class="dish"><h4>Local Juice — Wonjo or Ginger</h4><p>The Gambian favourites, brewed in-house and served ice cold.</p><div class="row"><span class="price-badge">D50</span><span class="pop">Local</span></div></article>
-        <article class="dish"><h4>Soft Drink</h4><p>Chilled canned soft drinks — ask for today's selection.</p><div class="row"><span class="price-badge">D40</span></div></article>
+        <article class="dish"><h4>Vanilla Milkshake</h4><p>Thick, cold and classic.</p><div class="row"><span class="price-badge">D150</span></div></article>
+        <article class="dish"><h4>Chocolate Milkshake</h4><p>Rich chocolate, blended thick.</p><div class="row"><span class="price-badge">D150</span></div></article>
+        <article class="dish"><h4>Strawberry Milkshake</h4><p>Sweet, pink and ice-cold.</p><div class="row"><span class="price-badge">D150</span></div></article>
+        <article class="dish"><h4>Fresh Orange Juice</h4><p>Squeezed fresh, nothing added.</p><div class="row"><span class="price-badge">D80</span></div></article>
+        <article class="dish"><h4>Local Juice — Wonjo or Ginger</h4><p>The Gambian classics, made in-house daily.</p><div class="row"><span class="price-badge">D50</span><span class="pop">Local</span></div></article>
+        <article class="dish"><h4>Soft Drink</h4><p>Ice-cold cans — ask what is in the fridge.</p><div class="row"><span class="price-badge">D40</span></div></article>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================= VISIT ================= -->
+<!-- ================= FIND US ================= -->
 <section class="visit-sec" id="visit">
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">Find us</span>
       <h2>Two spots, <span class="hl">one ChopShop</span></h2>
-      <p>Drop by the flagship on Kairaba Avenue or find us in Senegambia — same menu, same sweet bun, same ChopShop welcome.</p>
+      <p>Walk in, or call ahead and your order will be hot when you arrive.</p>
     </div>
 
     <div class="branch-grid">
-      <article class="branch">
+      <article class="branch yellow">
         <span class="flag">Flagship</span>
         <h3>Kairaba Avenue</h3>
-        <p class="addr">Kairaba Avenue, next to the QCell headquarters, Serrekunda</p>
-        <p>Our main location — the full menu, the grill running all day and the biggest ChopShop energy in The Gambia.</p>
+        <p class="addr">Kairaba Avenue, next to QCell HQ</p>
+        <p>Serrekunda, Kanifing — the original ChopShop, serving since 2014.</p>
       </article>
       <article class="branch red">
-        <span class="flag" style="background:var(--red)">Senegambia</span>
+        <span class="flag">Senegambia</span>
         <h3>Tropic Shopping Center</h3>
         <p class="addr">Tropic Shopping Center, Senegambia</p>
-        <p>Right in the heart of the Senegambia strip — burgers, shawarma and shakes while you shop and stroll.</p>
+        <p>In the heart of the tourist strip — burgers by the beach zone.</p>
       </article>
     </div>
 
     <div class="info-strip">
-      <div class="info-cell">
-        <div class="big">8:30 – 11:00</div>
-        <p>Open daily<br />8:30 AM – 11:00 PM</p>
-      </div>
-      <div class="info-cell">
-        <div class="big"><a href="tel:+2202400777">240 0777</a></div>
-        <p>Call to order<br />+220 240 0777</p>
-      </div>
-      <div class="info-cell">
-        <div class="big">4.3 &#9733;</div>
-        <p>Rated on Google<br />by our customers</p>
-      </div>
+      <div class="info-cell"><div class="big">8:30 – 11:00</div><p>Open every day<br />8:30 AM – 11:00 PM</p></div>
+      <div class="info-cell"><div class="big"><a href="tel:+2202400777">+220 240 0777</a></div><p>Call to order ahead<br />for pickup</p></div>
+      <div class="info-cell"><div class="big">Since 2014</div><p>The Gambia's biggest<br />indigenous food brand</p></div>
     </div>
   </div>
 </section>
@@ -590,8 +502,8 @@
 <!-- ================= CLOSING CTA ================= -->
 <section class="cta-band">
   <div class="wrap">
-    <h2>Hungry? <span class="y">You know what to do.</span></h2>
-    <p>Call the counter, place your order, and your ChopShop will be hot and ready when you arrive.</p>
+    <h2>Hungry? <span class="y">You know where we are.</span></h2>
+    <p>Kairaba Avenue &amp; Senegambia — open daily 8:30 AM to 11:00 PM.</p>
     <a class="btn btn-yellow" href="tel:+2202400777">&#128222; Call +220 240 0777</a>
   </div>
 </section>
@@ -599,36 +511,64 @@
 <footer>
   <div class="wrap">
     <span class="logo">CHOP<b>SHOP</b><small>Gambia · Est. 2014</small></span>
-    <p>ChopShop · Kairaba Avenue, Serrekunda · Tropic Shopping Center, Senegambia · +220 240 0777 · Open daily 8:30 AM – 11:00 PM</p>
-    <p class="tag">The Gambia's biggest indigenous food brand</p>
-    <p style="margin-top:16px; font-size:.8rem; color:#8d8271">Concept demo website. Menu items and prices are samples for illustration, to be confirmed with the business.</p>
+    <p class="tag">Dream it. Stack it. Chop it.</p>
+    <p>Kairaba Avenue, Serrekunda · Tropic Shopping Center, Senegambia · +220 240 0777</p>
+    <p>Demonstration website built as a design concept for ChopShop. Menu prices are sample estimates, not the restaurant's official prices.</p>
   </div>
 </footer>
 
 <script>
-/* ============ HERO: scroll-driven burger stack ============ */
-(function () {
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduced) return; /* leave the assembled burger + finale text as the static default */
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var section = document.querySelector(".hero-scroll");
-  var head = document.getElementById("heroHead");
-  var caption = document.getElementById("heroCaption");
-  var hint = document.getElementById("scrollHint");
-  var finalBox = document.getElementById("heroFinal");
-  var burgerAll = document.getElementById("burgerAll");
-  var boxBack = document.getElementById("boxBack");
-  var boxFront = document.getElementById("boxFront");
-  var lid = document.getElementById("lidFlap");
-  var sticker = document.getElementById("boxSticker");
-  var layers = [];
-  document.querySelectorAll("#burgerSvg .layer").forEach(function (g) {
-    layers[parseInt(g.getAttribute("data-layer"), 10)] = g;
+  /* ---------- Marquee: duplicate content for a seamless loop ---------- */
+  var track = document.getElementById("marqueeTrack");
+  if (track) track.innerHTML += track.innerHTML;
+
+  /* ---------- Build Your Own ---------- */
+  var BASE_PRICE = 300, BASE_LAYERS = 3;
+  var totalEl = document.getElementById("stackTotal");
+  var countEl = document.getElementById("layerCount");
+  function slotEls(slot){
+    return Array.prototype.slice.call(document.querySelectorAll('#stack .player[data-slot="' + slot + '"]'));
+  }
+  document.querySelectorAll(".ing-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var on = btn.getAttribute("aria-pressed") === "true";
+      btn.setAttribute("aria-pressed", String(!on));
+      slotEls(btn.getAttribute("data-slot")).forEach(function(el){
+        el.classList.toggle("off", on);
+        if (!on){ el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
+      });
+      var total = BASE_PRICE, layers = BASE_LAYERS;
+      document.querySelectorAll(".ing-btn[aria-pressed='true']").forEach(function(b){
+        total += parseInt(b.getAttribute("data-price"), 10);
+        layers += 1;
+      });
+      totalEl.textContent = "D" + total;
+      countEl.textContent = String(layers);
+    });
   });
 
+  /* ---------- Hero scroll sequence ---------- */
+  var stage = document.querySelector(".hero-scroll");
+  var heroHead = document.getElementById("heroHead");
+  var captionEl = document.getElementById("heroCaption");
+  var hintEl = document.getElementById("scrollHint");
+  var finalEl = document.getElementById("heroFinal");
+  var finalePhoto = document.getElementById("finalePhoto");
+  var stackStage = document.getElementById("stackStage");
+  var shadowEl = document.getElementById("stackShadow");
+  var layers = Array.prototype.slice.call(document.querySelectorAll(".stack-layer"))
+    .sort(function(a,b){ return (+a.getAttribute("data-layer")) - (+b.getAttribute("data-layer")); });
+  if (!stage || !layers.length || reduceMotion) return; // static assembled stack
+
+  /* Exploded translateY per layer, in stage-height units (stage = 1050 units tall).
+     Bottom layer drifts down, top layer rises most. */
+  var EXP = layers.map(function(_, i){ return (3 - i) * 50; });
   var LAND = [
     "First, the bottom bun — soft & sweet",
-    "A swipe of ChopShop sauce",
     "The smashed beef patty, off the grill",
     "Melted cheese, still dripping",
     "Crunchy onion rings",
@@ -636,114 +576,74 @@
     "Crisp green lettuce",
     "The top bun — sesame crown"
   ];
+  var DEFAULT_CAP = "The ChopShop stack · seven layers deep";
+  var EXPLODE_CAP = "Take it apart — every layer fresh";
 
-  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
-  function seg(p, a, b) { return clamp((p - a) / (b - a), 0, 1); }
-  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
-  function easeInOut(t) { return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
-  function easeOutBack(t) { var c = 1.70158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }
+  function clamp01(x){ return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function seg(p, a, b){ return clamp01((p - a) / (b - a)); }
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+  function easeInOut(t){ return t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2; }
+  function easeOutBack(t){ var c = 1.30158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }
 
   var ticking = false;
-
-  function render() {
+  function render(){
     ticking = false;
-    var rect = section.getBoundingClientRect();
-    var total = rect.height - window.innerHeight;
-    var p = total > 0 ? clamp(-rect.top / total, 0, 1) : 0;
+    var r = stage.getBoundingClientRect();
+    var total = r.height - window.innerHeight;
+    var p = total > 0 ? clamp01(-r.top / total) : 0;
+    var stageH = stackStage.clientHeight || 1;
+    var unit = stageH / 1050;
 
-    /* headline + hint fade out as the show starts */
-    head.style.opacity = String(1 - seg(p, 0.02, 0.10));
-    hint.style.opacity = String(1 - seg(p, 0.03, 0.08));
+    /* Headline + hint fade out early */
+    var headOut = seg(p, 0.0, 0.06);
+    heroHead.style.opacity = String(1 - headOut);
+    heroHead.style.transform = "translateY(" + (-26 * easeOut(headOut)) + "px)";
+    hintEl.style.opacity = String(1 - seg(p, 0.0, 0.045));
 
-    /* layers: explode apart, then drop back in one by one */
-    var captionText = null;
-    for (var i = 0; i < 8; i++) {
-      var g = layers[i];
-      if (!g) continue;
-      var spread = (i + 1) * 13;
-      var exStart = 0.07 + (7 - i) * 0.018;
-      var ex = easeOut(seg(p, exStart, exStart + 0.15));
-      var bStart = 0.40 + i * 0.038;
-      var bt = seg(p, bStart, bStart + 0.115);
+    /* Layers: explode (Act 1), restack one by one (Act 2) */
+    var landedCount = 0;
+    layers.forEach(function(el, i){
+      var ex = easeInOut(seg(p, 0.07 + (6 - i) * 0.018, 0.07 + (6 - i) * 0.018 + 0.15));
+      var bt = seg(p, 0.40 + i * 0.038, 0.40 + i * 0.038 + 0.115);
       var y;
-      if (bt <= 0) {
-        y = -spread * ex;
-      } else {
-        y = -spread * (1 - easeOutBack(bt));
-      }
-      g.setAttribute("transform", "translate(0 " + y.toFixed(2) + ")");
-      if (bt > 0.04 && bt < 0.99) captionText = LAND[i];
-      if (bt >= 0.99 && !captionText && p < 0.80) captionText = LAND[i];
-    }
+      if (bt > 0){ y = EXP[i] * (1 - easeOutBack(bt)); if (bt >= 1) landedCount++; }
+      else { y = EXP[i] * ex; }
+      el.style.transform = "translateY(" + (y * unit).toFixed(1) + "px)";
+    });
+    var exploded = p > 0.24 && landedCount === 0;
 
-    /* finale: stack drops into the box, lid closes */
-    var fin = easeInOut(seg(p, 0.815, 0.905));
-    burgerAll.setAttribute("transform", "translate(0 " + (fin * 64).toFixed(2) + ")");
-    boxBack.setAttribute("opacity", String(seg(p, 0.80, 0.86)));
-    var bf = seg(p, 0.845, 0.915);
-    boxFront.setAttribute("opacity", String(bf));
-    boxFront.setAttribute("transform", "translate(0 " + ((1 - easeOut(bf)) * 26).toFixed(2) + ")");
-    var lt = seg(p, 0.895, 0.965);
-    lid.setAttribute("opacity", String(seg(p, 0.885, 0.92)));
-    lid.setAttribute("transform", "rotate(" + (-152 * (1 - easeInOut(lt))).toFixed(2) + " 180 218)");
-    var st = easeOutBack(seg(p, 0.945, 1));
-    sticker.setAttribute("transform", "translate(180 368) scale(" + Math.max(st, 0.001).toFixed(3) + ") translate(-180 -368)");
+    /* Shadow shrinks as the stack lifts apart */
+    var lift = Math.abs(EXP[6]) * easeInOut(seg(p, 0.07, 0.22)) * (landedCount === layers.length ? 0 : 1);
+    shadowEl.style.transform = "scaleX(" + (1 - Math.min(lift / 300, 0.22)) + ")";
+    shadowEl.style.opacity = String(1 - Math.min(lift / 300, 0.3));
 
-    var finOn = seg(p, 0.935, 0.99);
-    finalBox.style.opacity = String(finOn);
-    finalBox.classList.toggle("on", finOn > 0.6);
+    /* Caption */
+    var cap = DEFAULT_CAP;
+    if (p >= 0.86) cap = "Boxed up & ready to go";
+    else if (landedCount > 0 && landedCount <= 7 && p < 0.86) cap = LAND[landedCount - 1];
+    else if (exploded) cap = EXPLODE_CAP;
+    if (captionEl.textContent !== cap) captionEl.textContent = cap;
+    captionEl.style.opacity = String(1 - seg(p, 0.845, 0.90));
 
-    /* caption line */
-    var text;
-    if (p >= 0.90) text = "Boxed up & ready to go";
-    else if (captionText) text = captionText;
-    else if (p > 0.10 && p < 0.40) text = "Take it apart — every layer fresh";
-    else text = "The ChopShop stack · eight layers deep";
-    if (caption.textContent !== text) caption.textContent = text;
-    caption.style.opacity = String(1 - seg(p, 0.90, 0.96));
+    /* Finale (Act 3): crossfade the stack to the boxed-burger photo */
+    var fin = easeOut(seg(p, 0.85, 0.94));
+    stackStage.style.opacity = String(1 - fin);
+    stackStage.style.transform = "scale(" + (1 - fin * 0.05) + ") translateY(" + (fin * 18) + "px)";
+    finalePhoto.style.opacity = String(easeOut(seg(p, 0.865, 0.95)));
+    finalePhoto.style.transform = "scale(" + (0.94 + 0.06 * easeOut(seg(p, 0.865, 0.95))) + ")";
+    finalePhoto.style.pointerEvents = p > 0.95 ? "auto" : "none";
+
+    var finOn = seg(p, 0.90, 0.97);
+    finalEl.style.opacity = String(finOn);
+    finalEl.style.transform = "translateX(-50%) translateY(" + (18 * (1 - easeOut(finOn))) + "px)";
+    finalEl.classList.toggle("on", p > 0.93);
   }
-
-  function onScroll() {
-    if (!ticking) { ticking = true; window.requestAnimationFrame(render); }
+  function onScroll(){
+    if (!ticking){ ticking = true; window.requestAnimationFrame(render); }
   }
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
   render();
-})();
-
-/* ============ BUILD YOUR OWN ============ */
-(function () {
-  var BASE_PRICE = 300, BASE_LAYERS = 3;
-  var countEl = document.getElementById("layerCount");
-  var totalEl = document.getElementById("stackTotal");
-  var stack = document.getElementById("stack");
-
-  function layerEl(slot) { return stack.querySelector('[data-slot="' + slot + '"]'); }
-
-  document.querySelectorAll(".ing-btn").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      var slot = btn.getAttribute("data-slot");
-      var el = layerEl(slot);
-      var on = btn.getAttribute("aria-pressed") !== "true";
-      btn.setAttribute("aria-pressed", String(on));
-      el.classList.toggle("off", !on);
-      if (on) { el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
-
-      var total = BASE_PRICE, count = BASE_LAYERS;
-      document.querySelectorAll('.ing-btn[aria-pressed="true"]').forEach(function (b) {
-        total += parseInt(b.getAttribute("data-price"), 10);
-        count += 1;
-      });
-      countEl.textContent = String(count);
-      totalEl.textContent = "D" + total;
-    });
-  });
-})();
-
-/* ============ MARQUEE: duplicate track for a seamless loop ============ */
-(function () {
-  var track = document.getElementById("marqueeTrack");
-  track.innerHTML += track.innerHTML;
 })();
 </script>
 </body>
